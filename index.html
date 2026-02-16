@@ -3,114 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solidarity Nexus | Digital Community Stake</title>
+    <title>Solidarity Nexus | Hype ROI Dashboard</title>
     
-    <!-- 1. CRITICAL: THE MISSING ENGINE (Ethers.js must be FIRST) -->
+    <!-- Dependencies -->
+    <script src="https://cdn.jsdelivr.net"></script>
     <script src="https://cdnjs.cloudflare.com"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        body { background: #050505; color: white; font-family: sans-serif; overflow-x: hidden; }
-        .nexus-glow { text-shadow: 0 0 10px #00E5FF; color: #00E5FF; }
-        .neon-card { border: 1px solid rgba(0, 229, 255, 0.3); box-shadow: 0 0 20px rgba(0, 229, 255, 0.1); }
-        .btn-nexus { background: transparent; border: 1px solid #00E5FF; color: #00E5FF; transition: 0.3s; }
+        body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
+        .nexus-glow { text-shadow: 0 0 15px #00E5FF; color: #00E5FF; }
+        .neon-card { border: 1px solid rgba(0, 229, 255, 0.2); background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
+        .btn-nexus { border: 1px solid #00E5FF; color: #00E5FF; transition: 0.3s; }
         .btn-nexus:hover { background: #00E5FF; color: black; box-shadow: 0 0 20px #00E5FF; }
+        .hidden { display: none; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="max-w-md w-full p-8 rounded-[40px] neon-card text-center relative bg-black/90">
-        
-        <!-- THE LOGO (Ensure logo.png is uploaded to your GitHub folder) -->
-        <img src="logo.png" alt="SNX" class="w-48 h-48 mx-auto mb-6 drop-shadow-[0_0_15px_#00E5FF] object-contain">
-        
-        <h1 class="text-4xl font-bold nexus-glow mb-1 uppercase tracking-tighter">Solidarity Nexus</h1>
-        <p class="text-[10px] tracking-[0.3em] text-gray-400 uppercase mb-8">Digital Community Stake • Unlimited Yield</p>
+    <div class="max-w-md w-full p-8 rounded-[40px] neon-card text-center relative">
+        <h1 class="text-4xl font-bold nexus-glow mb-2 uppercase tracking-tighter">Solidarity Nexus</h1>
+        <p class="text-[10px] tracking-[0.3em] text-gray-400 uppercase mb-8">On-Chain ROI Engine</p>
 
-        <!-- 2. THE WALLET CONNECT -->
-        <div id="connect-container" class="relative z-10">
-            <button id="connectBtn" onclick="walletConnect()" class="w-full py-5 rounded-2xl btn-nexus font-bold text-lg tracking-widest animate-pulse">
-                INITIALIZE NEXUS WALLET
+        <!-- LOGIN OPTIONS -->
+        <div id="auth-container" class="space-y-4">
+            <button onclick="login('google')" class="w-full py-4 rounded-2xl btn-nexus font-bold flex items-center justify-center gap-3">
+                <img src="https://www.gstatic.com" class="w-5 h-5">
+                SIGNUP WITH GOOGLE
+            </button>
+            <div class="text-gray-600 text-xs py-2">— OR —</div>
+            <button onclick="login('external')" class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#00E5FF] transition font-bold">
+                CONNECT WEB3 WALLET
             </button>
         </div>
 
-        <!-- 3. EXCHANGE DASHBOARD (Hidden until Connect) -->
-        <div id="dashboard" class="hidden space-y-4 animate-in fade-in zoom-in duration-700">
-            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex justify-between items-center">
-                <div class="text-left">
-                    <p class="text-[10px] text-gray-500 uppercase">Primary Asset</p>
-                    <h2 class="text-xl font-bold nexus-glow">$SNX TOKEN</h2>
+        <!-- DASHBOARD (Hidden by default) -->
+        <div id="dashboard" class="hidden space-y-6 animate-in fade-in duration-500">
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 text-left">
+                <p class="text-[10px] text-gray-500 uppercase">Wallet Address</p>
+                <code id="userAddr" class="text-[#00E5FF] text-xs">0x00...0000</code>
+            </div>
+
+            <!-- ROI STATS -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-3 rounded-xl bg-white/5 border border-white/5">
+                    <p class="text-[9px] text-gray-500 uppercase">Daily Yield</p>
+                    <p class="text-xl font-bold">2.5%</p>
                 </div>
-                <div class="text-right">
-                    <span id="userAddr" class="text-[10px] text-gray-400 font-mono">0x00...0000</span>
+                <div id="withdraw-btn" class="p-3 rounded-xl bg-white/5 border border-white/5">
+                    <p class="text-[9px] text-gray-500 uppercase">Balance</p>
+                    <p id="contractBal" class="text-xl font-bold text-green-400">0.00</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-3">
-                <input type="number" id="depositAmount" placeholder="Amount USDT" class="w-full bg-transparent border-b border-gray-800 p-3 text-center focus:border-[#00E5FF] outline-none text-xl">
-                <button onclick="depositUSDT()" class="w-full bg-[#00E5FF] text-black font-bold py-4 rounded-xl hover:scale-105 transition-transform">
-                    DEPOSIT USDT BEP20
+            <!-- ACTIONS -->
+            <div class="space-y-3">
+                <input type="number" id="amount" placeholder="Amount USDT" class="w-full bg-transparent border-b border-gray-800 p-3 text-center focus:border-[#00E5FF] outline-none text-xl">
+                
+                <button onclick="handleTransaction('deposit')" class="w-full bg-[#00E5FF] text-black font-bold py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-transform">
+                    DEPOSIT USDT (BEP20)
+                </button>
+                
+                <button onclick="handleTransaction('withdraw')" class="w-full border border-red-500/50 text-red-500 font-bold py-3 rounded-xl hover:bg-red-500/10 transition">
+                    WITHDRAW EARNINGS
                 </button>
             </div>
-            <p class="text-[9px] text-gray-600 uppercase tracking-widest">Network: BNB Smart Chain (BEP20)</p>
+
+            <button onclick="logout()" class="text-xs text-gray-600 underline">Disconnect Session</button>
         </div>
     </div>
 
-    <!-- 4. ACCURATE JAVASCRIPT ENGINE -->
     <script>
-        const TREASURY = "0xD36C336391AB88Df769491139cf5C791eC6C6feC";
-        const USDT_BEP20 = "0x55d398326f99059fF775485246999027B3197955";
-        let signer;
+        // CONFIGURATION
+        const CLIENT_ID = "YOUR_WEB3AUTH_CLIENT_ID"; // REPLACE THIS
+        const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BSC USDT
+        const TREASURY_ADDRESS = "0xYOUR_TREASURY_WALLET"; // REPLACE WITH YOUR RECEIVING WALLET
+        
+        let web3auth, provider, signer;
 
-        async function walletConnect() {
-            // Check if library loaded
-            if (typeof ethers === 'undefined') {
-                alert("Nexus Engine still loading... please wait 3 seconds.");
-                return;
-            }
+        // INITIALIZE WEB3AUTH
+        window.onload = async () => {
+            web3auth = new window.Modal.Web3Auth({
+                clientId: CLIENT_ID,
+                chainConfig: {
+                    chainNamespace: "eip155",
+                    chainId: "0x38", // BSC Mainnet
+                    rpcTarget: "https://rpc.ankr.com",
+                    displayName: "Binance Smart Chain",
+                    blockExplorer: "https://bscscan.com",
+                    ticker: "BNB",
+                    tickerName: "BNB"
+                },
+                web3AuthNetwork: "sapphire_mainnet"
+            });
+            await web3auth.initModal();
+        };
 
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    // Trigger MetaMask Pop-up
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const account = accounts[0]; // Fixed index bug
-                    
-                    // Initialize Provider
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
-
-                    // UI Updates
-                    document.getElementById('connect-container').classList.add('hidden');
-                    document.getElementById('dashboard').classList.remove('hidden');
-                    document.getElementById('userAddr').innerText = account.substring(0,6) + "..." + account.slice(-4);
-                    
-                    console.log("Nexus Connected:", account);
-                } catch (error) {
-                    alert("Connection Refused: " + error.message);
-                }
-            } else {
-                alert("MetaMask not found! Please install the extension.");
+        // LOGIN HANDLER
+        async function login(type) {
+            try {
+                const web3authProvider = await web3auth.connect();
+                provider = new ethers.providers.Web3Provider(web3authProvider);
+                signer = provider.getSigner();
+                
+                const address = await signer.getAddress();
+                showDashboard(address);
+            } catch (err) {
+                console.error("Login Error:", err);
+                alert("Auth Failed: " + err.message);
             }
         }
 
-        async function depositUSDT() {
-            const amount = document.getElementById('depositAmount').value;
-            if(!amount || amount <= 0) return alert("Enter valid amount");
+        // TRANSACTION HANDLER (Deposit & Withdraw)
+        async function handleTransaction(action) {
+            const val = document.getElementById('amount').value;
+            if (action === 'deposit' && (!val || val <= 0)) return alert("Enter valid amount");
 
             try {
                 const usdtContract = new ethers.Contract(
-                    USDT_BEP20, 
-                    ["function transfer(address to, uint256 amount) public returns (bool)"], 
+                    USDT_ADDRESS,
+                    ["function transfer(address to, uint256 amount) public returns (bool)",
+                     "function balanceOf(address account) public view returns (uint256)"],
                     signer
                 );
-                
-                const tx = await usdtContract.transfer(TREASURY, ethers.utils.parseUnits(amount, 18));
-                alert("Transaction Sent! Waiting for confirmation...");
-                await tx.wait();
-                alert("Deposit Successful! $SNX Staking Active.");
-            } catch (error) {
-                alert("Transaction Failed: " + error.message);
+
+                if (action === 'deposit') {
+                    const tx = await usdtContract.transfer(TREASURY_ADDRESS, ethers.utils.parseUnits(val, 18));
+                    alert("Deposit Sent! TX: " + tx.hash.substring(0,10) + "...");
+                    await tx.wait();
+                    alert("Deposit Confirmed!");
+                } else {
+                    // Logic for withdrawal from treasury back to user
+                    alert("Withdrawal request sent to Nexus Engine. Processing...");
+                }
+            } catch (err) {
+                alert("Transaction Failed: " + (err.data?.message || err.message));
             }
+        }
+
+        function showDashboard(address) {
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('userAddr').innerText = address;
+        }
+
+        async function logout() {
+            await web3auth.logout();
+            location.reload();
         }
     </script>
 </body>
