@@ -151,7 +151,29 @@
             }
         }
     </script>
+        <script src="https://cdn.ethers.io"></script>
+    <script>
+        const TREASURY = "0xD36C336391AB88Df769491139cf5C791eC6C6feC";
+        const USDT_BEP20 = "0x55d398326f99059fF775485246999027B3197955";
+
+        async function walletConnect() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    document.getElementById('connect-container').classList.add('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    console.log("Connected:", accounts[0]);
+                } catch (error) {
+                    alert("Connection Failed: " + error.message);
+                }
+            } else {
+                alert("Please install MetaMask!");
+            }
+        }
+    </script>
+
 </body>
 </html>
+
 
 
