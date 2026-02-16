@@ -39,7 +39,7 @@
         <!-- 2. THE WALLET CONNECT (Fixed Logic) -->
         <div id="connect-container" class="relative z-10">
             <button id="connectBtn" onclick="walletConnect()" class="w-full py-5 rounded-2xl btn-nexus font-bold text-lg tracking-widest">
-                CONNECT WALLET
+                INITIALIZE METAMASK WALLET
             </button>
         </div>
 
@@ -87,9 +87,9 @@
         let provider;
         let signer;
 
-        async function nexusConnect() {
+        async function walletConnect() {
             if (typeof window.ethereum === 'undefined') {
-                return alert("Nexus requires MetaMask or Trust Wallet to proceed.");
+                return alert("Nexus requires MetaMask to proceed.");
             }
 
             try {
@@ -153,4 +153,5 @@
     </script>
 </body>
 </html>
+
 
