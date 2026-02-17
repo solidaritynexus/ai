@@ -3,134 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solidarity Nexus | Pro CEX dApp</title>
-    <!-- 1. EXTERNAL LIBS: Ethers, Google Auth, Tailwind -->
-    <script src="https://cdnjs.cloudflare.com"></script>
+    <title>Solidarity Nexus | Pro CEX</title>
+    <!-- 1. LIBS: Google Auth & Tailwind -->
     <script src="https://accounts.google.com" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
     
     <style>
-        :root { --nexus-blue: #3b82f6; --nexus-purple: #a855f7; }
-        body { background: radial-gradient(circle at top right, #1e1b4b, #020617); color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .neon-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(168, 85, 247, 0.2); }
-        .active-tab { border-bottom: 2px solid var(--nexus-blue); color: var(--nexus-blue); }
+        :root { --nexus-blue: #00E5FF; --nexus-purple: #A855F7; }
+        body { background: radial-gradient(circle at bottom left, #1e1b4b, #050505); color: white; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        .glass-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .neon-text { background: linear-gradient(90deg, var(--nexus-blue), var(--nexus-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .input-nexus { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.3s; }
+        .input-nexus:focus { border-color: var(--nexus-blue); box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); outline: none; }
+        .btn-nexus { background: linear-gradient(90deg, var(--nexus-blue), var(--nexus-purple)); color: black; font-weight: bold; transition: 0.4s; }
+        .btn-nexus:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(0, 229, 255, 0.4); }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- LOGIN OVERLAY -->
-    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
-        <div class="max-w-md w-full p-10 glass-card rounded-[2.5rem] text-center neon-glow">
-            <img src="logo.png" alt="Nexus" class="w-32 h-32 mx-auto mb-6 drop-shadow-[0_0_15px_var(--nexus-blue)]">
-            <h1 class="text-3xl font-black bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-2">SOLIDARITY NEXUS</h1>
-            <p class="text-gray-400 text-xs tracking-widest mb-10">THE NEXT GENERATION CEX PROTOCOL</p>
+    <!-- SIGNUP/LOGIN SCREEN -->
+    <div id="auth-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+        <div class="max-w-md w-full p-10 glass-card rounded-[3rem] text-center">
+            <!-- SNX Logo -->
+            <img src="https://i.imgur.com" alt="Nexus" class="w-32 h-32 mx-auto mb-6 drop-shadow-[0_0_15px_#00E5FF]">
+            <h1 class="text-3xl font-bold neon-text mb-1 uppercase tracking-tighter">Solidarity Nexus</h1>
+            <p class="text-gray-500 text-[10px] tracking-[0.4em] mb-10">THE NEXT 50 YEARS OF EXCHANGE</p>
             
             <div class="space-y-4">
-                <!-- Google Login Button -->
+                <!-- Phone Signup -->
+                <div class="text-left">
+                    <label class="text-[10px] text-gray-500 ml-2">MOBILE NUMBER</label>
+                    <input type="tel" id="phone" placeholder="+1 234 567 890" class="w-full p-4 rounded-2xl input-nexus text-sm">
+                </div>
+                <button onclick="loginWithPhone()" class="w-full py-4 rounded-2xl btn-nexus tracking-widest uppercase">Continue with Phone</button>
+
+                <!-- Separator -->
+                <div class="flex items-center my-6"><div class="flex-1 border-t border-white/10"></div><span class="px-4 text-gray-600 text-xs font-bold">OR</span><div class="flex-1 border-t border-white/10"></div></div>
+
+                <!-- Google Signup -->
                 <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID" data-callback="handleGoogleLogin"></div>
-                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_blue" data-text="signup_with" data-shape="pill"></div>
-                
-                <div class="flex items-center my-6"><div class="flex-1 border-t border-white/10"></div><span class="px-4 text-gray-600 text-xs">OR</span><div class="flex-1 border-t border-white/10"></div></div>
-                
-                <button onclick="walletConnect()" class="w-full py-4 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 font-bold tracking-widest transition-all">CONNECT WEB3 WALLET</button>
+                <div class="g_id_signin flex justify-center" data-type="standard" data-size="large" data-theme="filled_black" data-text="signup_with" data-shape="pill" data-logo_alignment="left"></div>
             </div>
         </div>
     </div>
 
-    <!-- MAIN CEX DASHBOARD -->
-    <main id="main-app" class="hidden">
-        <!-- Sidebar & Navigation Logic here -->
-        <nav class="p-6 border-b border-white/5 flex justify-between items-center glass-card">
-            <div class="flex items-center gap-2"><div class="w-8 h-8 bg-blue-500 rounded-full"></div><span class="font-bold">NEXUS CEX</span></div>
-            <div id="user-info" class="text-xs font-mono text-blue-400 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/5">Not Logged In</div>
+    <!-- MAIN DASHBOARD (Visible After Login) -->
+    <main id="app" class="hidden">
+        <nav class="p-6 flex justify-between items-center glass-card border-b border-white/5">
+            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full btn-nexus"></div><span class="font-bold tracking-tighter">SNX CEX</span></div>
+            <div id="user-tag" class="text-[10px] font-bold text-cyan-400 bg-cyan-400/10 px-4 py-2 rounded-full border border-cyan-400/20">ACCOUNT VERIFIED</div>
         </nav>
 
-        <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- PORTFOLIO STATS -->
+        <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Stats -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="p-8 rounded-3xl glass-card relative overflow-hidden">
-                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-purple-600/20 blur-[100px]"></div>
-                    <p class="text-gray-400 text-sm">Total Portfolio Value</p>
-                    <h2 class="text-5xl font-black mt-2">$24,105.82 <span class="text-green-400 text-base font-medium">+12.4%</span></h2>
+                <div class="p-10 rounded-[2.5rem] glass-card relative overflow-hidden">
+                    <div class="absolute -top-20 -right-20 w-80 h-80 bg-purple-600/10 blur-[120px]"></div>
+                    <p class="text-gray-400 text-xs uppercase tracking-widest">Global Portfolio Value</p>
+                    <h2 class="text-5xl font-bold mt-2 neon-text">$2,540.00</h2>
                 </div>
 
-                <!-- MINI EXCHANGE INTERFACE -->
-                <div class="p-6 glass-card rounded-3xl">
-                    <div class="flex gap-6 mb-6 border-b border-white/5 pb-2">
-                        <button class="active-tab font-bold text-sm">SPOT</button>
-                        <button class="text-gray-500 text-sm">STAKING</button>
-                        <button class="text-gray-500 text-sm">MINING</button>
+                <!-- Action Section -->
+                <div class="p-8 glass-card rounded-[2.5rem]">
+                    <div class="flex gap-8 mb-8 text-[10px] font-bold text-gray-500 uppercase">
+                        <button class="text-cyan-400 border-b border-cyan-400 pb-2">Deposit</button>
+                        <button>Withdraw</button>
+                        <button>Exchange</button>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white/5 p-4 rounded-2xl">
-                            <p class="text-[10px] text-gray-500">YOU SEND (USDT)</p>
-                            <input type="number" id="sendAmt" class="bg-transparent w-full text-2xl font-bold outline-none" placeholder="0.00">
+                    <div class="space-y-6">
+                        <div class="bg-black/40 p-5 rounded-2xl border border-white/5">
+                            <p class="text-[9px] text-gray-500 mb-2 uppercase">USDT BEP20 TREASURY ADDRESS</p>
+                            <p class="text-xs font-mono text-cyan-400 select-all">0xD36C336391AB88Df769491139cf5C791eC6C6feC</p>
                         </div>
-                        <div class="bg-white/5 p-4 rounded-2xl">
-                            <p class="text-[10px] text-gray-500">YOU GET (SNX)</p>
-                            <div class="text-2xl font-bold text-blue-400" id="getAmt">0.00</div>
-                        </div>
+                        <button onclick="alert('Confirming USDT on-chain...')" class="w-full py-5 btn-nexus rounded-2xl tracking-widest uppercase">Confirm Transfer</button>
                     </div>
-                    <button onclick="executeSwap()" class="w-full mt-6 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 font-bold shadow-[0_0_15px_rgba(59,130,246,0.5)]">EXECUTE DEPOSIT</button>
                 </div>
             </div>
 
-            <!-- WALLET BALANCES (CEX FLAVOR) -->
+            <!-- Asset List -->
             <div class="space-y-4">
-                <h3 class="font-bold text-gray-400 text-xs tracking-widest px-2">WALLET ASSETS</h3>
-                <div class="glass-card p-4 rounded-2xl flex justify-between items-center border-l-4 border-blue-500">
-                    <div><p class="font-bold">$SNX TOKEN</p><p class="text-[10px] text-gray-500">Solidarity Protocol</p></div>
-                    <div class="text-right"><p class="font-bold">12,500.00</p><p class="text-[10px] text-blue-400">Mainnet</p></div>
+                <h3 class="text-[10px] font-bold text-gray-600 tracking-[0.3em] px-2 uppercase">My Assets</h3>
+                <div class="p-5 glass-card rounded-3xl flex justify-between items-center border-l-4 border-cyan-400">
+                    <div><p class="font-bold text-sm">$SNX TOKEN</p><p class="text-[10px] text-gray-500">Solidarity Nexus</p></div>
+                    <div class="text-right"><p class="font-bold text-cyan-400">1,250.00</p><p class="text-[10px] text-green-400">+1.5% ROI</p></div>
                 </div>
-                <div class="glass-card p-4 rounded-2xl flex justify-between items-center opacity-60">
-                    <div><p class="font-bold">USDT BEP20</p><p class="text-[10px] text-gray-500">Tether Stable</p></div>
-                    <div class="text-right"><p class="font-bold" id="usdt-bal">0.00</p></div>
+                <div class="p-5 glass-card rounded-3xl flex justify-between items-center opacity-60">
+                    <div><p class="font-bold text-sm">USDT BEP20</p><p class="text-[10px] text-gray-500">Tether USD</p></div>
+                    <div class="text-right"><p class="font-bold">0.00</p></div>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        const TREASURY = "0xD36C336391AB88Df769491139cf5C791eC6C6feC";
-        const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955";
-        let signer, provider, userAddress;
-
-        // 1. DUAL AUTH ENGINE (GOOGLE + WEB3)
-        async function handleGoogleLogin(response) {
-            console.log("Google Signup Success:", response.credential);
-            // In a pro dApp, you'd send this JWT to a backend. 
-            // For GitHub Pages, we proceed to dashboard.
-            launchNexusApp("Google User");
+        // CEX AUTH LOGIC
+        function handleGoogleLogin(response) {
+            console.log("Google Auth Success");
+            launchApp("Google Account");
         }
 
-        async function walletConnect() {
-            if (typeof window.ethereum !== 'undefined') {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                userAddress = accounts[0];
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                signer = provider.getSigner();
-                launchNexusApp(userAddress.substring(0,6) + "..." + userAddress.slice(-4));
-            } else { alert("Install MetaMask to use Web3 Features"); }
+        function loginWithPhone() {
+            const num = document.getElementById('phone').value;
+            if(num.length > 8) {
+                launchApp(num);
+            } else { alert("Enter a valid phone number"); }
         }
 
-        function launchNexusApp(id) {
+        function launchApp(id) {
             document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('user-info').innerText = id;
-        }
-
-        // 2. EXCHANGE LOGIC (ON-CHAIN)
-        async function executeSwap() {
-            const amount = document.getElementById('sendAmt').value;
-            if(!amount) return alert("Enter USDT Amount");
-            try {
-                const contract = new ethers.Contract(USDT_CONTRACT, ["function transfer(address to, uint256 amount) public returns (bool)"], signer);
-                const tx = await contract.transfer(TREASURY, ethers.utils.parseUnits(amount, 18));
-                alert("Swap Initiated. USDT moving to Solidarity Treasury.");
-                await tx.wait();
-                alert("Swap Complete! $SNX allocated to your dashboard.");
-            } catch (err) { alert("Transaction Failed: " + err.message); }
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('user-tag').innerText = "UID: " + id;
         }
     </script>
 </body>
